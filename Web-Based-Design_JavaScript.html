@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>jQuery Drag and Slide Interactive Demo</title>
+  
+  <!-- jQuery UI CSS -->
+<link rel="stylesheet"
+href="https://code.jquery.com/ui/1.14.1/themes/base/jquery-ui.css">
+
+<!-- jQuery library -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<!-- jQuery UI library -->
+<script src="https://code.jquery.com/ui/1.14.1/jquery-ui.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 40px 20px;
+      background-color: #f4f7f9;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+      color: #1e293b;
+    }
+
+    p.subtitle {
+      margin-top: 0;
+      margin-bottom: 30px;
+      color: #64748b;
+    }
+
+    .container {
+      display: flex;
+      gap: 30px;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 900px;
+      width: 100%;
+    }
+
+    .section-box {
+      background: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      padding: 25px;
+      flex: 1;
+      min-width: 320px;
+    }
+
+    .section-box h2 {
+      margin-top: 0;
+      font-size: 1.2rem;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 10px;
+      color: #0f172a;
+    }
+
+    /* --- 1. Sliding Up & Down Styles --- */
+    .accordion-btn {
+      width: 100%;
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background-color 0.2s;
+    }
+
+    .accordion-btn:hover {
+      background-color: #1d4ed8;
+    }
+
+    .slide-panel {
+      display: none; /* Hidden by default */
+      background-color: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-top: none;
+      padding: 15px;
+      border-radius: 0 0 6px 6px;
+      line-height: 1.5;
+      color: #1e3a8a;
+    }
+
+    /* --- 2. Vertical Dragging Track Styles --- */
+    .drag-track {
+      position: relative;
+      height: 300px;
+      background-color: #f8fafc;
+      border: 2px dashed #cbd5e1;
+      border-radius: 8px;
+      margin-top: 15px;
+      overflow: hidden;
+    }
+
+    .draggable-card {
+      width: 85%;
+      margin: 15px auto;
+      padding: 18px;
+      background-color: #10b981;
+      color: white;
+      font-weight: bold;
+      text-align: center;
+      border-radius: 8px;
+      cursor: grab;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      user-select: none;
+    }
+
+    .draggable-card:active {
+      cursor: grabbing;
+      background-color: #059669;
+    }
+
+    .status-text {
+      margin-top: 12px;
+      font-size: 0.9rem;
+      color: #475569;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>jQuery Interactive Playground</h1>
+  <p class="subtitle">Click panels to slide up/down, or drag the green card vertically.</p>
+
+  <div class="container">
+    
+    <!-- FEATURE 1: SLIDING UP & DOWN -->
+    <div class="section-box">
+      <h2>1. Slide Up and Down Panels</h2>
+      <p>Uses jQuery's <code>.slideToggle()</code> method.</p>
+
+      <button class="accordion-btn">
+        <span>Section 1: How Sliding Works</span>
+        <span class="arrow">▼</span>
+      </button>
+      <div class="slide-panel">
+        jQuery animates the height of this element smoothly between 0px and its full height when clicked.
+      </div>
+
+      <button class="accordion-btn">
+        <span>Section 2: Custom Speeds</span>
+        <span class="arrow">▼</span>
+      </button>
+      <div class="slide-panel">
+        You can pass <code>"slow"</code>, <code>"fast"</code>, or any number in milliseconds (like <code>400</code>) to control the slide speed.
+      </div>
+
+      <button class="accordion-btn">
+        <span>Section 3: Callbacks</span>
+        <span class="arrow">▼</span>
+      </button>
+      <div class="slide-panel">
+        A callback function can run right after the sliding animation finishes—for example, rotating the arrow icon!
+      </div>
+    </div>
+
+    <!-- FEATURE 2: VERTICAL DRAGGING -->
+    <div class="section-box">
+      <h2>2. Vertical Dragging</h2>
+      <p>Uses jQuery UI's <code>.draggable()</code> constrained to the Y-axis.</p>
+
+      <div class="drag-track" id="track">
+        <div class="draggable-card" id="dragCard">
+          ⇅ Drag Me Up and Down
+        </div>
+      </div>
+      <div class="status-text" id="dragStatus">Vertical Position (Top): 0px</div>
+    </div>
+
+  </div>
+
+  <script>
+    $(document).ready(function() {
+      
+      // 1. SLIDE UP AND DOWN LOGIC
+      $(".accordion-btn").on("click", function() {
+        const $panel = $(this).next(".slide-panel");
+        const $arrow = $(this).find(".arrow");
+
+        // Toggle slide with a 300ms animation
+        $panel.slideToggle(300, function() {
+          // Update arrow indicator once animation completes
+          if ($panel.is(":visible")) {
+            $arrow.text("▲");
+          } else {
+            $arrow.text("▼");
+          }
+        });
+      });
+
+      // 2. VERTICAL DRAGGING LOGIC
+      $("#dragCard").draggable({
+        axis: "y",                // Restricts dragging strictly to up and down
+        containment: "#track",    // Keeps the card inside the dashed container
+        drag: function(event, ui) {
+          // Live update of the vertical position while dragging
+          const topPos = Math.round(ui.position.top);
+          $("#dragStatus").text("Vertical Position (Top): " + topPos + "px");
+        }
+      });
+
+    });
+</script>
+</body>
+</html>
